@@ -355,17 +355,17 @@ void Joycon::ReadStickCalibration(bool isLeft)
     stickCalibration[6] = ((out[4] << 8) & 0xF00 | out[3]); // Deadzone
 }
 
-inline bool HasButton(uint8_t data, JoyconButton button)
+__forceinline bool HasButton(uint8_t data, JoyconButton button)
 {
     return !!(data & button);
 }
 
-inline void RightRegionButton(Joycon& joycon, uint8_t data, JoyconButton button, int xbutton)
+__forceinline void RightRegionButton(Joycon& joycon, uint8_t data, JoyconButton button, int xbutton)
 {
     joycon.rightButtons |= HasButton(data, button) * xbutton;
 }
 
-inline void RightRegionTrigger(Joycon& joycon, uint8_t data, JoyconButton button)
+__forceinline void RightRegionTrigger(Joycon& joycon, uint8_t data, JoyconButton button)
 {
     joycon.rightTrigger = HasButton(data, button) * 255;
 }
@@ -391,12 +391,12 @@ inline Vector2 GetStick(const uint16_t stickCalibration[], uint8_t a, uint8_t b,
     return { x, y };
 }
 
-inline void ProcessRightStick(Joycon& joycon, uint8_t a, uint8_t b, uint8_t c)
+__forceinline void ProcessRightStick(Joycon& joycon, uint8_t a, uint8_t b, uint8_t c)
 {
     joycon.rightStick = GetStick(joycon.stickCalibration, a, b, c);
 }
 
-inline void ProcessRightButton(Joycon& joycon, JoyconRegion region, JoyconButton button)
+__forceinline void ProcessRightButton(Joycon& joycon, JoyconRegion region, JoyconButton button)
 {
     int command = JOYCON_HUMAN_COMMAND(region, button);
     if (command == JOYCON_HUMAN_COMMAND(JoyconRegion::RightAux, R_TRIGGER))
@@ -463,22 +463,16 @@ __forceinline void LeftRegionTrigger(Joycon& joycon, unsigned char data, JoyconB
     joycon.leftTrigger = HasButton(data, button) * 255;
 }
 
-inline void ProcessLeftStick(Joycon& joycon, uint8_t a, uint8_t b, uint8_t c)
+__forceinline void ProcessLeftStick(Joycon& joycon, uint8_t a, uint8_t b, uint8_t c)
 {
     joycon.leftStick = GetStick(joycon.stickCalibration, a, b, c);
 }
 
-inline void ProcessLeftButton(Joycon& joycon, JoyconRegion region, JoyconButton button)
+__forceinline void ProcessLeftButton(Joycon& joycon, JoyconRegion region, JoyconButton button)
 {
     int command = JOYCON_HUMAN_COMMAND(region, button);
-    if (command == JOYCON_HUMAN_COMMAND(JoyconRegion::LeftAux, L_TRIGGER))
-    {
-        joycon.leftTrigger = 255;
-    }
-    else
-    {
-        joycon.leftButtons |= BUTTON_MAPPINGS[command];
-    }
+    joycon.leftTrigger = command * JOYCON_HUMAN_COMMAND(JoyconRegion::LeftAux, L_TRIGGER);
+    joycon.leftButtons |= BUTTON_MAPPINGS[command];
 }
 
 void Joycon::ProcessLeftRegion(XboxController* xbox)
