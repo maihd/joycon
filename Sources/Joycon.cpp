@@ -444,7 +444,7 @@ void Joycon::ProcessRightRegion(XboxController* xbox)
     RightRegionButton(*this, data[2 + offset] << shift, R_STICK, XUSB_GAMEPAD_RIGHT_THUMB);
     RightRegionTrigger(*this, data[2 + offset2], R_TRIGGER);
 
-    // Apply=
+    // Apply
     xbox->report.bRightTrigger = (BYTE)rightTrigger;
     xbox->report.sThumbRX = (SHORT)rightStick.x;
     xbox->report.sThumbRY = (SHORT)rightStick.y;

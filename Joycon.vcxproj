@@ -23,8 +23,8 @@
     <ClCompile Include="Sources\JoyconTypes.cpp" />
     <ClCompile Include="Sources\JoyconUtils.cpp" />
     <ClCompile Include="Sources\Main.cpp" />
-    <ClCompile Include="ThirdParty\hid\src\hid.c" />
-    <ClCompile Include="ThirdParty\ViGEmClient\src\ViGEmClient.cpp" />
+    <ClCompile Include="ThirdParty\Sources\hid\src\hid.c" />
+    <ClCompile Include="ThirdParty\Sources\ViGEmClient\src\ViGEmClient.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sources\Joycon.h" />
@@ -101,7 +101,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)ThirdParty/hid/include;$(ProjectDir)ThirdParty/ViGEmClient/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)ThirdParty/Include;$(ProjectDir)ThirdParty/Sources/hid/include;$(ProjectDir)ThirdParty/Sources/ViGEmClient/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -116,7 +116,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)ThirdParty/hid/include;$(ProjectDir)ThirdParty/ViGEmClient/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)ThirdParty/Include;$(ProjectDir)ThirdParty/Sources/hid/include;$(ProjectDir)ThirdParty/Sources/ViGEmClient/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -131,7 +131,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)ThirdParty/hid/include;$(ProjectDir)ThirdParty/ViGEmClient/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)ThirdParty/Include;$(ProjectDir)ThirdParty/Sources/hid/include;$(ProjectDir)ThirdParty/Sources/ViGEmClient/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -146,7 +146,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)ThirdParty/hid/include;$(ProjectDir)ThirdParty/ViGEmClient/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)ThirdParty/Include;$(ProjectDir)ThirdParty/Sources/hid/include;$(ProjectDir)ThirdParty/Sources/ViGEmClient/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

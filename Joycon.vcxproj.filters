@@ -17,12 +17,6 @@
     <ClCompile Include="Sources\Joycon.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="ThirdParty\hid\src\hid.c">
-      <Filter>ThirdParty</Filter>
-    </ClCompile>
-    <ClCompile Include="ThirdParty\ViGEmClient\src\ViGEmClient.cpp">
-      <Filter>ThirdParty</Filter>
-    </ClCompile>
     <ClCompile Include="Sources\Main.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
@@ -31,6 +25,12 @@
     </ClCompile>
     <ClCompile Include="Sources\JoyconTypes.cpp">
       <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="ThirdParty\Sources\hid\src\hid.c">
+      <Filter>ThirdParty</Filter>
+    </ClCompile>
+    <ClCompile Include="ThirdParty\Sources\ViGEmClient\src\ViGEmClient.cpp">
+      <Filter>ThirdParty</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

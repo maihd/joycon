@@ -7,13 +7,17 @@
 #include <assert.h>
 #include <string.h>
 #include <signal.h>
-#include <string>
-#include <tuple>
 #include <vector>
 #include <regex>
 
 #include "Joycon.h"
 #include "JoyconUtils.h"
+
+struct Application
+{
+    XboxController* xbox;
+    HANDLE          mutex;
+};
 
 static bool kill_threads = false;
 
@@ -44,12 +48,12 @@ XboxController* initialize_xbox()
     return xbox;
 }
 
-void disconnect_exit(XboxController xbox)
+void disconnect_exit(XboxController* xbox)
 {
-    vigem_target_remove(xbox.client, xbox.target);
-    vigem_target_free(xbox.target);
-    vigem_disconnect(xbox.client);
-    vigem_free(xbox.client);
+    vigem_target_remove(xbox->client, xbox->target);
+    vigem_target_free(xbox->target);
+    vigem_disconnect(xbox->client);
+    vigem_free(xbox->client);
     exit(0);
 }
 
@@ -181,10 +185,26 @@ Joycon initialize_right_joycon(std::string* mac)
     return joycon;
 }
 
-int WINAPI LeftJoyconThread(__in Joystick* joystick)
+_Function_class_(EVT_VIGEM_X360_NOTIFICATION)
+void CALLBACK OnJoyconNofitication(
+    PVIGEM_CLIENT Client,
+    PVIGEM_TARGET Target,
+    UCHAR LargeMotor,
+    UCHAR SmallMotor,
+    UCHAR LedNumber,
+    LPVOID UserData
+)
+{
+    Joycon* joycon = (Joycon*)&UserData;
+    printf("require shake joycon...\n");
+}
+
+int WINAPI LeftJoyconThread(__in Application* app)
 {
     printf(" => left Joy-Con thread started\n");
+    WaitForSingleObject(app->mutex, INFINITE);
     Joycon left_joycon = initialize_left_joycon(nullptr);
+    ReleaseMutex(app->mutex);
 
     if (!left_joycon.IsValid())
     {
@@ -192,23 +212,27 @@ int WINAPI LeftJoyconThread(__in Joystick* joystick)
         return 0;
     }
 
-    auto xbox = joystick->xbox;
+    auto xbox = app->xbox;
     while (!kill_threads)
     {
         left_joycon.Update();
         left_joycon.ProcessLeftRegion(xbox);
 
+        WaitForSingleObject(app->mutex, INFINITE);
         vigem_target_x360_update(xbox->client, xbox->target, xbox->report);
+        ReleaseMutex(app->mutex);
     }
 
     left_joycon.Cleanup();
     return 0;
 }
 
-int WINAPI RightJoyconThread(__in Joystick* joystick)
+int WINAPI RightJoyconThread(__in Application* app)
 {
     printf(" => right Joy-Con thread started\n");
+    WaitForSingleObject(app->mutex, INFINITE);
     Joycon right_joycon = initialize_right_joycon(nullptr);
+    ReleaseMutex(app->mutex);
 
     if (!right_joycon.IsValid())
     {
@@ -216,25 +240,25 @@ int WINAPI RightJoyconThread(__in Joystick* joystick)
         return 0;
     }
 
-    auto xbox = joystick->xbox;
+    auto xbox = app->xbox;
     while (!kill_threads)
     {
         right_joycon.Update();
         right_joycon.ProcessRightRegion(xbox);
 
+        WaitForSingleObject(app->mutex, INFINITE);
         vigem_target_x360_update(xbox->client, xbox->target, xbox->report);
+        ReleaseMutex(app->mutex);
     }
 
     right_joycon.Cleanup();
     return 0;
 }
 
-void terminate(XboxController xbox, HANDLE left_thread, HANDLE right_thread)
+void terminate(XboxController* xbox, HANDLE leftThread, HANDLE rightThread)
 {
     kill_threads = true;
     Sleep(10);
-    TerminateThread(left_thread, 0);
-    TerminateThread(right_thread, 0);
     printf("disconnecting and exiting...\n");
     disconnect_exit(xbox);
 }
@@ -289,14 +313,14 @@ void ShowList(const char* name)
     }
 }
 
-void ShowUsage(const std::string& name)
+void ShowUsage(const char* name)
 {
     printf(
         "Configure joy cons\n\n"
-        "XJoy [/?] [/L] [/V] [/P[[:]Args]]\n\n"
+        "Joycon [/?] [/L] [/V] [/P[[:]Args]]\n\n"
         "Options:\n"
         "/L	List existing joy cons\n"
-        "/V	Show XJoy version\n"
+        "/V	Show Joycon version\n"
         "/P	Pair by MAC\n"
         "Args	Pair formed by -, Pairs separated by ,\n"
         "  	11:22:33:44:55:66-11:22:33:44:55:66,11:22:33:44:55:66-11:22:33:44:55:66\n"
@@ -338,36 +362,46 @@ int PairDuoJoycon(std::string* l_mac, std::string* r_mac)
 
     XboxController* xbox = initialize_xbox();
 
-    Joystick* l_joystick = new Joystick();
-    l_joystick->mac = l_mac;
-    l_joystick->xbox = xbox;
+    HANDLE mutex = CreateMutex(nullptr, false, nullptr);
+    if (mutex == 0 || mutex == INVALID_HANDLE_VALUE)
+    {
+        printf("\nfailed to created mutex...\n");
+        return -1;
+    }
 
-    Joystick* r_joystick = new Joystick();
-    r_joystick->mac = r_mac;
-    r_joystick->xbox = xbox;
+    Application* app = new Application();
+    app->xbox = xbox;
+    app->mutex = mutex;
 
     printf("\ninitializing threads...\n");
 
     // Left joycon's input should handle first, to make movement faster
-    HANDLE leftThread = CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE)LeftJoyconThread, l_joystick, 0, &left_thread_id);
+    HANDLE leftThread = CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE)LeftJoyconThread, app, 0, &left_thread_id);
 
     // Right joycon's input should handle first, to make attack faster
-    HANDLE rightThread = CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE)RightJoyconThread, r_joystick, 0, &right_thread_id);
+    HANDLE rightThread = CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE)RightJoyconThread, app, 0, &right_thread_id);
 
     Sleep(500);
     printf("\n");
 
-    if (leftThread != 0)
+    if (leftThread != 0 && leftThread != INVALID_HANDLE_VALUE)
     {
         WaitForSingleObject(leftThread, INFINITE);
+        //TerminateThread(leftThread, 0);
     }
 
-    if (rightThread != 0)
+    if (rightThread != 0 && rightThread != INVALID_HANDLE_VALUE)
     {
         WaitForSingleObject(rightThread, INFINITE);
+        //TerminateThread(rightThread, 0);
     }
 
-    terminate(*xbox, leftThread, rightThread);
+    terminate(xbox, leftThread, rightThread);
+    
+    // Release usage memory
+    CloseHandle(mutex);
+    delete xbox;
+    delete app;
 
     return 0;
 }
@@ -465,6 +499,8 @@ int main(int argc, const char* argv[])
     signal(SIGINT, exit_handler);
 
     const char* name = argv[0];
+
+#if 0
     for (int i = 1; i < argc; ++i)
     {
         std::string arg = argv[i];
@@ -497,6 +533,7 @@ int main(int argc, const char* argv[])
             return 1;
         }
     }
+#endif
 
     // Print current availables devices
     ShowList(name);

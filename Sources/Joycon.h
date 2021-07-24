@@ -15,12 +15,6 @@ struct XboxController
     int             rightButtons;
 };
 
-struct Joystick
-{
-    void*           mac;
-    XboxController* xbox;
-};
-
 struct hid_device_;
 
 struct Joycon
